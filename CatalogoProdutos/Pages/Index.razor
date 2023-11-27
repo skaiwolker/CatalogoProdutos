@@ -1,0 +1,112 @@
+﻿@page "/"
+
+@using CatalogoProdutos.Models
+@inject IJSRuntime JSRuntime
+@inject CatalogoProdutos.Services.Interface.IProdutoService ProdutoService;
+
+<PageTitle>Produtos</PageTitle>
+
+<h1>Produtos</h1>
+
+<table class="table table-responsive table-striped">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Preço</th>
+            <th>Descrição</th>
+            <th>Quantidade</th>
+            <th>Tipo</th>
+            <th>Data de Cadastro</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if(produtos != null && produtos.Count > 0){
+            foreach(Produto produto in produtos)
+            {
+                <tr>
+                    <td>@produto.Nome</td>
+                    <td>@produto.Preco</td>
+                    <td>@produto.Descricao</td>
+                    <td>@produto.Quantidade</td>
+                    <td>@produto.Tipo</td>
+                    <td>@produto.DataDeCadastro</td>
+                    <td><a href="/update/@produto.Id" class="btn btn-warning">Editar</a>
+                        <button class="btn btn-danger" @onclick="async () => await DeletarProduto(produto.Id)">Deletar</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<div>
+    @if (ProdutosCount > 5)
+    {
+        @if (CurrentPage > 1)
+        {
+            <input type="button" class="btn-lg btn" id="prev" @onclick="PreviousPage" value="Anterior" />
+        }
+
+        @if (ProdutosCount / CurrentPage > 5)
+        {
+            <input type="button" class="btn-lg btn" id="next" @onclick="NextPage" value="Proxima" />
+        }
+    }
+</div>
+
+@code{
+    List<Produto> produtos = new();
+
+    private int CurrentPage = 1;
+
+    private int ProdutosCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ShowPage();
+        await GetCount();
+    }
+
+    async Task NextPage()
+    {
+        CurrentPage++;
+        await ShowPage();
+    }
+
+    async Task PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+            await ShowPage();
+        }
+    }
+
+    async Task ShowPage()
+    {
+        produtos = await ProdutoService.GetAll(CurrentPage);
+    }
+
+    async Task GetCount()
+    {
+        ProdutosCount = await ProdutoService.ProdutosCount();
+    }
+
+    async Task DeletarProduto(Guid id)
+    {
+        Produto? produto = await ProdutoService.GetProdutoById(id);
+
+        bool isConfirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Tem certeza que deseja deletar o produto {produto.Nome}?");
+
+        if (!isConfirmed) return;
+
+        await ProdutoService.Delete(produto);
+
+        produtos = await ProdutoService.GetAll(CurrentPage);
+
+        await GetCount();
+
+        StateHasChanged();
+    }
+}
