@@ -11,13 +11,13 @@ namespace CatalogoProdutos.Models
         [MaxLength(100)]
         public string Nome { get; set; } = null!;
 
-        [Range(0, double.MaxValue, ErrorMessage = "Insira um numero valido!")]
+        [Range(1, double.MaxValue, ErrorMessage = "Insira um numero valido!")]
         public string Preco { get; set; } = null!;
 
         [MaxLength(500)]
         public string Descricao { get; set; } = null!;
 
-        [Range(0, int.MaxValue, ErrorMessage = "Insira um numero valido!")]
+        [Range(1, int.MaxValue, ErrorMessage = "Insira um numero valido!")]
         public int Quantidade { get; set; }
 
         [Required]
